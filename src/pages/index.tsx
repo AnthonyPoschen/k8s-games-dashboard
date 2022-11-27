@@ -1,9 +1,13 @@
 import { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import { TypeOf } from "zod";
 
-import { trpc } from "../utils/trpc";
+import { trpc, RouterOutputs } from "../utils/trpc";
 
+import { ReactNode } from 'react'
+
+type serverStatus = "Unknown" | "Online" | "Shutting Down" | "Offline" | "Starting"
 const Home: NextPage = () => {
 const servers = trpc.kubernetes.get.useQuery();
 const customStyle = {
@@ -21,21 +25,41 @@ return (
     <div className="text-4xl text-center font-bold pt-5 w-full border-b-4 pb-2" style={customStyle}>
       Game Server Manager
     </div>
-    <div className="flex w-full p-8 lg:p-2 lg:w-1/2 justify-center">
+    <div className="flex flex-wrap w-full h-full p-8 lg:p-2 lg:w-1/2 justify-center text-black">
       {servers.data?.Servers.map((el) =>
-      <div className="min-w-[200px] flex-col flex flex-grow border-2 border-gray-600 p-2">
-        <h2 className="font-bold text-xl text-center w-full">
+      <div className="w-full flex flex-grow p-2 even:bg-gray-400 odd:bg-gray-500 hover:bg-gray-300">
+        <h2 className="w-[150px] font-bold text-xl">
           {el.Name}
         </h2>
-        <p>Status: {el.Status}</p>
-        <p>Current Replicas: {el.CurrentReplicas}</p>
-        <p>Desired Replicas: {el.DesiredReplicas}</p>
-        <button className="w-full" type="button">Turn {el.DesiredReplicas == 0 ? "On" : "Off"}</button>
+        <p className="grow text-center">
+          {CalculateStatus(el)}
+        </p>
+        {["Online", "Offline"].includes(CalculateStatus(el)) ?
+        <button className="w-[150px]" type="button">Turn {CalculateStatus(el) == "Online" ? "Off" : "On"}</button> :
+        <div className="w-[150px]" />
+        }
       </div>)}
     </div>
   </main>
 </>
 );
 };
+
+function CalculateStatus(server: RouterOutputs['kubernetes']['get']['Servers'][number]): serverStatus {
+var { DesiredReplicas, CurrentReplicas } = server
+if (CurrentReplicas == 1 && DesiredReplicas == 1) {
+return "Online"
+}
+if (CurrentReplicas == 1 && DesiredReplicas == 0) {
+return "Shutting Down"
+}
+if (CurrentReplicas == 0 && DesiredReplicas == 0) {
+return "Offline"
+}
+if (CurrentReplicas == 0 && DesiredReplicas == 1) {
+return "Starting"
+}
+return "Unknown"
+}
 
 export default Home;

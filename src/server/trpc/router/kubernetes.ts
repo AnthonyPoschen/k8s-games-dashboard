@@ -1,11 +1,15 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
 import * as k8s from '@kubernetes/client-node';
+const homedir = require('os').homedir();
 
 const kc: k8s.KubeConfig = new k8s.KubeConfig();
 // kc.loadFromDefault();
-kc.loadFromFile('/Users/zanven/.kube/config')
-
+if (process.env.NODE_ENV == "development") {
+  kc.loadFromFile(`${homedir}/.kube/config`)
+} else {
+  kc.loadFromDefault()
+}
 const k8sContainer = kc.makeApiClient(k8s.AppsV1Api);
 // const k8scon = kc.makeApiClient(k8s.);
 const zServerType = z.enum(["Deployment", "Statefulset"])

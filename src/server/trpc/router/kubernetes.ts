@@ -42,7 +42,6 @@ export const kubernetesRouter = router({
         if (item.metadata?.namespace?.startsWith("games-") == false) {
           return
         }
-        console.log(item)
         if (item.status?.replicas == undefined || item.spec?.replicas == undefined) { return }
         results.push({
           Name: item.metadata.name, Namespace: item.metadata.namespace, CurrentReplicas: item.status?.readyReplicas || 0, DesiredReplicas: item.spec?.replicas, Type: "Statefulset",
@@ -65,7 +64,6 @@ export const kubernetesRouter = router({
   }),
   set: publicProcedure.input(z.object({ Name: z.string(), Namespace: z.string(), Type: zServerType, Replicas: z.number() })).output(z.boolean()).mutation(async (q) => {
     let { Name, Namespace, Type, Replicas } = q.input
-    console.log("Request recieved", q.input)
     switch (Type) {
       case "Deployment": {
         return k8sContainer.readNamespacedDeployment(Name, Namespace).then((data) => {

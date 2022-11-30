@@ -10,7 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 
 type serverStatus = "Unknown" | "Online" | "Shutting Down" | "Offline" | "Starting"
 const Home: NextPage = () => {
-const servers = trpc.kubernetes.get.useQuery();
+const servers = trpc.kubernetes.get.useQuery(undefined, { refetchInterval: 2000 });
 const TurnServerOnOff = trpc.kubernetes.set.useMutation()
 
 const ChangeServerState = async (server: RouterOutputs['kubernetes']['get'][number]) => {

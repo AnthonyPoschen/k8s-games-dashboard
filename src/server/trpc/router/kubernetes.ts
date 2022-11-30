@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
 import * as k8s from '@kubernetes/client-node';
-const homedir = require('os').homedir();
+import * as os from 'os';
+const homedir = os.homedir();
 
 const kc: k8s.KubeConfig = new k8s.KubeConfig();
 // kc.loadFromDefault();

@@ -12,8 +12,8 @@ const zServerType = z.enum(["Deployment", "Statefulset"])
 const zServer = z.object({ Name: z.string(), Namespace: z.string(), Type: zServerType, DesiredReplicas: z.number(), CurrentReplicas: z.number() }).array()
 export const kubernetesRouter = router({
   get: publicProcedure.output(zServer).query(async () => {
-    let deployPromise = k8sContainer.listDeploymentForAllNamespaces().then((data) => {
-      var results: typeof zServer._type = [];
+    const deployPromise = k8sContainer.listDeploymentForAllNamespaces().then((data) => {
+      const results: typeof zServer._type = [];
       data.body.items.forEach((item) => {
 
         if (item.metadata?.namespace == undefined || item.metadata.name == undefined) {
@@ -30,11 +30,11 @@ export const kubernetesRouter = router({
       return results
     }).catch((e) => {
       console.log(e);
-      var results: typeof zServer._type = [];
+      const results: typeof zServer._type = [];
       return results;
     })
-    let statefulsetPromise = k8sContainer.listStatefulSetForAllNamespaces().then((data) => {
-      var results: typeof zServer._type = [];
+    const statefulsetPromise = k8sContainer.listStatefulSetForAllNamespaces().then((data) => {
+      const results: typeof zServer._type = [];
       data.body.items.forEach((item) => {
         if (item.metadata?.namespace == undefined || item.metadata.name == undefined) {
           return
@@ -50,12 +50,12 @@ export const kubernetesRouter = router({
       return results
     }).catch((e) => {
       console.log(e);
-      var results: typeof zServer._type = [];
+      const results: typeof zServer._type = [];
       return results;
     })
 
     return Promise.all([deployPromise, statefulsetPromise]).then((results) => {
-      var result: typeof zServer._type = [];
+      const result: typeof zServer._type = [];
       results.forEach((array) => {
         result.push(...array)
       })
@@ -63,11 +63,11 @@ export const kubernetesRouter = router({
     })
   }),
   set: publicProcedure.input(z.object({ Name: z.string(), Namespace: z.string(), Type: zServerType, Replicas: z.number() })).output(z.boolean()).mutation(async (q) => {
-    let { Name, Namespace, Type, Replicas } = q.input
+    const { Name, Namespace, Type, Replicas } = q.input
     switch (Type) {
       case "Deployment": {
         return k8sContainer.readNamespacedDeployment(Name, Namespace).then((data) => {
-          let deployment = data.body;
+          const deployment = data.body;
           if (deployment.spec?.replicas == undefined) { return false }
           deployment.spec.replicas = Replicas
           return k8sContainer.replaceNamespacedDeployment(Name, Namespace, deployment).then(() => { return true }).catch(() => { return false })
@@ -75,7 +75,7 @@ export const kubernetesRouter = router({
       }
       case "Statefulset": {
         return k8sContainer.readNamespacedStatefulSet(Name, Namespace).then((data) => {
-          let sts = data.body;
+          const sts = data.body;
           if (sts.spec?.replicas == undefined) { return false }
           sts.spec.replicas = Replicas
           return k8sContainer.replaceNamespacedStatefulSet(Name, Namespace, sts).then(() => { return true }).catch(() => { return false })

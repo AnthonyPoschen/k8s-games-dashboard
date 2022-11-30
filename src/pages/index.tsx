@@ -38,8 +38,8 @@ return (
       Game Server Manager
     </div>
     <div className="flex flex-wrap w-full h-full p-0 pt-2 md:p-2 lg:p-2 lg:w-[900px] justify-center">
-      {servers.data?.map((el) =>
-      <div className="w-full flex flex-grow p-2 even:bg-gray-500 odd:bg-gray-600">
+      {servers.data?.map((el, index) =>
+      <div key={index} className="w-full flex flex-grow p-2 even:bg-gray-500 odd:bg-gray-600">
         <h2 className="md:w-[250px] sm:w-auto md:font-bold md:text-xl">
           {el.Namespace}/{el.Name}
         </h2>
@@ -63,7 +63,7 @@ return (
 );
 };
 function CalculateStatus(server: RouterOutputs['kubernetes']['get'][number]): serverStatus {
-var { DesiredReplicas, CurrentReplicas } = server
+const { DesiredReplicas, CurrentReplicas } = server
 if (CurrentReplicas == 1 && DesiredReplicas == 1) {
 return "Online"
 }

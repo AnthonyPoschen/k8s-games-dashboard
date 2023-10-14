@@ -10,15 +10,12 @@ import { useMutation } from "@tanstack/react-query";
 
 type serverStatus = "Unknown" | "Online" | "Shutting Down" | "Offline" | "Starting"
 const Home: NextPage = () => {
-  const servers = trpc.kubernetes.get.useQuery(undefined, { refetchInterval: 2000 });
-  const TurnServerOnOff = trpc.kubernetes.set.useMutation()
+  const servers = trpc.kubernetes.getServers.useQuery(undefined, { refetchInterval: 2000 });
+  const TurnServerOnOff = trpc.kubernetes.serverOnOff.useMutation()
 
-  const ChangeServerState = async (server: RouterOutputs['kubernetes']['get'][number]) => {
+  const ChangeServerState = async (onOff: boolean, server: RouterOutputs['kubernetes']['getServers'][number]) => {
     console.log("Sending HTTP request")
-    TurnServerOnOff.mutate({
-      Name: server.Name, Namespace: server.Namespace, Type: server.Type, Replicas:
-        server.CurrentReplicas == 0 ? 1 : 0
-    })
+    TurnServerOnOff.mutate({server: server,onOff: onOff})
   };
   // custom border under heading
   const customStyle = {
@@ -49,11 +46,11 @@ const Home: NextPage = () => {
               {["Online", "Offline"].includes(CalculateStatus(el)) ? CalculateStatus(el) == "Online" ?
                 <button className="w-[100px] md:w-[150px] border-slate-500 bg-red-700 hover:bg-red-600 rounded-md" type="button"
                   onClick={() =>
-                    ChangeServerState(el)}>Turn Off</button>
+                    ChangeServerState(false,el)}>Turn Off</button>
                 :
                 <button className="w-[100px] md:w-[150px] border-slate-500 bg-green-700 hover:bg-green-600 rounded-md"
                   type="button" onClick={() =>
-                    ChangeServerState(el)}>Turn On</button>
+                    ChangeServerState(true,el)}>Turn On</button>
                 :
                 <div className="w-[150px]" />}
             </div>)}
@@ -62,7 +59,7 @@ const Home: NextPage = () => {
     </>
   );
 };
-function CalculateStatus(server: RouterOutputs['kubernetes']['get'][number]): serverStatus {
+function CalculateStatus(server: RouterOutputs['kubernetes']['getServers'][number]): serverStatus {
   const { DesiredReplicas, CurrentReplicas } = server
   if (CurrentReplicas == 1 && DesiredReplicas == 1) {
     return "Online"
